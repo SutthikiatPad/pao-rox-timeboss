@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตารางเวลาและสถานะ</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .completed {
+            color: green;
+            font-weight: bold;
+        }
+        .pending {
+            color: red;
+            font-weight: bold;
+        }
+        .waiting-remove {
+            color: orange;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>คำนวณเวลาและแสดงในตาราง</h2>
+
+    <label for="name">ชื่อ:</label>
+    <input type="text" id="name" placeholder="กรอกชื่อ">
+
+    <label for="hh">ชั่วโมง:</label>
+    <input type="number" id="hh" placeholder="00">
+    
+    <label for="mm">นาที:</label>
+    <input type="number" id="mm" placeholder="03">
+    
+    <label for="ss">วินาที:</label>
+    <input type="number" id="ss" placeholder="12">
+    
+    <button onclick="addTimeToTable()">เพิ่มเวลา</button>
+
+    <h3>เวลาปัจจุบัน: <span id="currentTime"></span></h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ชื่อ</th>
+                <th>เวลาที่กำหนด</th>
+                <th>เวลาที่ได้</th>
+                <th>สถานะ</th>
+            </tr>
+        </thead>
+        <tbody id="timeTable">
+            <!-- ข้อมูลเวลาจะถูกเพิ่มตรงนี้ -->
+        </tbody>
+    </table>
+
+    <script>
+        function updateCurrentTime() {
+            let now = new Date();
+            document.getElementById("currentTime").innerText = now.toLocaleTimeString("th-TH");
+        }
+
+        function addTimeToTable() {
+            let name = document.getElementById("name").value.trim() || "ไม่ระบุ";
+            let hours = parseInt(document.getElementById("hh").value) || 0;
+            let minutes = parseInt(document.getElementById("mm").value) || 0;
+            let seconds = parseInt(document.getElementById("ss").value) || 0;
+
+            let now = new Date();
+            let targetTime = new Date(now);
+            targetTime.setHours(now.getHours() + hours);
+            targetTime.setMinutes(now.getMinutes() + minutes);
+            targetTime.setSeconds(now.getSeconds() + seconds);
+
+            let table = document.getElementById("timeTable");
+            let row = table.insertRow();
+            let indexCell = row.insertCell(0);
+            let nameCell = row.insertCell(1);
+            let inputCell = row.insertCell(2);
+            let resultCell = row.insertCell(3);
+            let statusCell = row.insertCell(4);
+
+            indexCell.innerText = table.rows.length;
+            nameCell.innerText = name;
+            inputCell.innerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            resultCell.innerText = targetTime.toLocaleTimeString("th-TH");
+            statusCell.innerText = "รอเวลา...";
+            statusCell.classList.add("pending");
+
+            checkStatus(row, targetTime);
+        }
+
+        function checkStatus(row, targetTime) {
+            let statusCell = row.cells[4];
+
+            function updateStatus() {
+                let now = new Date();
+                if (now >= targetTime) {
+                    let countdown = 10;
+                    statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
+                    statusCell.classList.remove("pending");
+                    statusCell.classList.add("waiting-remove");
+
+                    let countdownInterval = setInterval(() => {
+                        countdown--;
+                        statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
+                        if (countdown <= 0) {
+                            clearInterval(countdownInterval);
+                            row.remove();
+                        }
+                    }, 1000);
+                } else {
+                    setTimeout(updateStatus, 1000);
+                }
+            }
+            updateStatus();
+        }
+
+        setInterval(updateCurrentTime, 1000);
+    </script>
+
+</body>
+</html>
