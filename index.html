@@ -131,13 +131,13 @@
                 let timeRemaining = targetTime - now;  // เวลาที่เหลือจนถึงเวลาเป้าหมาย
 
                 if (timeRemaining <= 60000 && timeRemaining > 0) {  // ถ้าเหลือน้อยกว่า 60 วินาที
-                    statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที) ้ะทส .shfh;p`;
+                    statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที);
                     statusCell.classList.remove("pending");
                     statusCell.classList.add("waiting-remove");
 
                     let countdownInterval = setInterval(() => {
                         countdown--;
-                        statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที) ้ะทส .shfh;p`;
+                        statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที);
                         if (countdown <= 0) {
                             clearInterval(countdownInterval);
                             removeRowAndLogHistory(row); // ลบแถวและบันทึกในประวัติ
