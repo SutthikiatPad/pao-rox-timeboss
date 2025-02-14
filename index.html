@@ -30,9 +30,6 @@
             color: orange;
             font-weight: bold;
         }
-        .history-table {
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -70,62 +67,12 @@
         </tbody>
     </table>
 
-    <h3>ประวัติการลบเวลา</h3>
-    <table class="history-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>ชื่อ</th>
-                <th>เวลาที่ถูกลบ</th>
-                <th>เวลา</th>
-                <th>ดำเนินการ</th>
-            </tr>
-        </thead>
-        <tbody id="historyTable">
-            <!-- ประวัติการลบเวลา -->
-        </tbody>
-    </table>
-
     <script>
         function updateCurrentTime() {
             let now = new Date();
             document.getElementById("currentTime").innerText = now.toLocaleTimeString("th-TH");
         }
 
-        // ฟังก์ชันเก็บค่าที่ถูกเพิ่มลงใน localStorage
-        function saveTimeTable() {
-            let tableData = [];
-            let tableRows = document.getElementById("timeTable").rows;
-            for (let i = 0; i < tableRows.length; i++) {
-                let row = tableRows[i];
-                let rowData = {
-                    name: row.cells[1].innerText,
-                    inputTime: row.cells[2].innerText,
-                    resultTime: row.cells[3].innerText,
-                    status: row.cells[4].innerText
-                };
-                tableData.push(rowData);
-            }
-            localStorage.setItem("timeTableData", JSON.stringify(tableData));
-        }
-
-        // ฟังก์ชันเก็บค่าประวัติการลบใน localStorage
-        function saveHistoryTable() {
-            let historyData = [];
-            let historyRows = document.getElementById("historyTable").rows;
-            for (let i = 0; i < historyRows.length; i++) {
-                let row = historyRows[i];
-                let rowData = {
-                    name: row.cells[1].innerText,
-                    deletedTime: row.cells[2].innerText,
-                    deletionDate: row.cells[3].innerText
-                };
-                historyData.push(rowData);
-            }
-            localStorage.setItem("historyTableData", JSON.stringify(historyData));
-        }
-
-        // ฟังก์ชันเพิ่มข้อมูลตาราง
         function addTimeToTable() {
             let name = document.getElementById("name").value.trim() || "ไม่ระบุ";
             let hours = parseInt(document.getElementById("hh").value) || 0;
@@ -154,126 +101,33 @@
             statusCell.classList.add("pending");
 
             checkStatus(row, targetTime);
-
-            saveTimeTable(); // บันทึกข้อมูลเมื่อเพิ่มเวลา
         }
 
         function checkStatus(row, targetTime) {
             let statusCell = row.cells[4];
-            let countdown = 60;
 
             function updateStatus() {
                 let now = new Date();
-                let timeRemaining = targetTime - now;
-
-                if (timeRemaining <= 60000 && timeRemaining > 0) {
-                    statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที);
+                if (now >= targetTime) {
+                    let countdown = 10;
+                    statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
                     statusCell.classList.remove("pending");
                     statusCell.classList.add("waiting-remove");
 
                     let countdownInterval = setInterval(() => {
                         countdown--;
-                        statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที);
+                        statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
                         if (countdown <= 0) {
                             clearInterval(countdownInterval);
-                            removeRowAndLogHistory(row);
+                            row.remove();
                         }
                     }, 1000);
-                } else if (now >= targetTime) {
-                    statusCell.innerText = "บอสเกิดแล้ว";
-                    statusCell.classList.remove("pending");
-                    statusCell.classList.add("completed");
                 } else {
                     setTimeout(updateStatus, 1000);
                 }
             }
-
             updateStatus();
         }
-
-        function removeRowAndLogHistory(row) {
-            let historyTable = document.getElementById("historyTable");
-            let historyRow = historyTable.insertRow();
-            let indexCell = historyRow.insertCell(0);
-            let nameCell = historyRow.insertCell(1);
-            let timeCell = historyRow.insertCell(2);
-            let dateCell = historyRow.insertCell(3);
-            let actionCell = historyRow.insertCell(4);
-
-            let name = row.cells[1].innerText;
-            let targetTime = row.cells[3].innerText;
-
-            indexCell.innerText = historyTable.rows.length;
-            nameCell.innerText = name;
-            timeCell.innerText = targetTime;
-            dateCell.innerText = new Date().toLocaleString();
-
-            let deleteButton = document.createElement("button");
-            deleteButton.innerText = "ลบ";
-            deleteButton.onclick = function() {
-                historyTable.deleteRow(historyRow.rowIndex);
-                saveHistoryTable(); // บันทึกประวัติหลังลบ
-            };
-            actionCell.appendChild(deleteButton);
-
-            row.remove();
-
-            saveHistoryTable(); // บันทึกประวัติหลังลบ
-        }
-
-        function loadSavedData() {
-            // โหลดข้อมูลตารางเวลา
-            let savedTimeTable = localStorage.getItem("timeTableData");
-            if (savedTimeTable) {
-                let timeTableData = JSON.parse(savedTimeTable);
-                let table = document.getElementById("timeTable");
-                timeTableData.forEach((data, index) => {
-                    let row = table.insertRow();
-                    let indexCell = row.insertCell(0);
-                    let nameCell = row.insertCell(1);
-                    let inputCell = row.insertCell(2);
-                    let resultCell = row.insertCell(3);
-                    let statusCell = row.insertCell(4);
-
-                    indexCell.innerText = index + 1;
-                    nameCell.innerText = data.name;
-                    inputCell.innerText = data.inputTime;
-                    resultCell.innerText = data.resultTime;
-                    statusCell.innerText = data.status;
-                });
-            }
-
-            // โหลดข้อมูลประวัติการลบ
-            let savedHistoryTable = localStorage.getItem("historyTableData");
-            if (savedHistoryTable) {
-                let historyTableData = JSON.parse(savedHistoryTable);
-                let historyTable = document.getElementById("historyTable");
-                historyTableData.forEach((data, index) => {
-                    let historyRow = historyTable.insertRow();
-                    let indexCell = historyRow.insertCell(0);
-                    let nameCell = historyRow.insertCell(1);
-                    let timeCell = historyRow.insertCell(2);
-                    let dateCell = historyRow.insertCell(3);
-                    let actionCell = historyRow.insertCell(4);
-
-                    indexCell.innerText = index + 1;
-                    nameCell.innerText = data.name;
-                    timeCell.innerText = data.deletedTime;
-                    dateCell.innerText = data.deletionDate;
-
-                    let deleteButton = document.createElement("button");
-                    deleteButton.innerText = "ลบ";
-                    deleteButton.onclick = function() {
-                        historyTable.deleteRow(historyRow.rowIndex);
-                        saveHistoryTable(); // บันทึกประวัติหลังลบ
-                    };
-                    actionCell.appendChild(deleteButton);
-                });
-            }
-        }
-
-        // เรียกใช้งานฟังก์ชันเพื่อโหลดข้อมูลเมื่อโหลดหน้าเว็บ
-        window.onload = loadSavedData;
 
         setInterval(updateCurrentTime, 1000);
     </script>
