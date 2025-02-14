@@ -30,6 +30,9 @@
             color: orange;
             font-weight: bold;
         }
+        .history-table {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -64,6 +67,22 @@
         </thead>
         <tbody id="timeTable">
             <!-- ข้อมูลเวลาจะถูกเพิ่มตรงนี้ -->
+        </tbody>
+    </table>
+
+    <h3>ประวัติการลบเวลา</h3>
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ชื่อ</th>
+                <th>เวลาที่ถูกลบ</th>
+                <th>เวลา</th>
+                <th>ดำเนินการ</th>
+            </tr>
+        </thead>
+        <tbody id="historyTable">
+            <!-- ประวัติการลบเวลา -->
         </tbody>
     </table>
 
@@ -105,28 +124,67 @@
 
         function checkStatus(row, targetTime) {
             let statusCell = row.cells[4];
+            let countdown = 60; // เริ่มต้นนับถอยหลังที่ 60 วินาที
 
             function updateStatus() {
                 let now = new Date();
-                if (now >= targetTime) {
-                    let countdown = 10;
-                    statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
+                let timeRemaining = targetTime - now;  // เวลาที่เหลือจนถึงเวลาเป้าหมาย
+
+                if (timeRemaining <= 60000 && timeRemaining > 0) {  // ถ้าเหลือน้อยกว่า 60 วินาที
+                    statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที) ้ะทส .shfh;p`;
                     statusCell.classList.remove("pending");
                     statusCell.classList.add("waiting-remove");
 
                     let countdownInterval = setInterval(() => {
                         countdown--;
-                        statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
+                        statusCell.innerText = `ถึงเวลาแล้ว กำลังจะลบออกจากตาราง (ลบใน ${countdown} วินาที) ้ะทส .shfh;p`;
                         if (countdown <= 0) {
                             clearInterval(countdownInterval);
-                            row.remove();
+                            removeRowAndLogHistory(row); // ลบแถวและบันทึกในประวัติ
                         }
                     }, 1000);
+                } else if (now >= targetTime) {
+                    // เมื่อถึงเวลาแล้ว แสดงว่า "บอสเกิดแล้ว"
+                    statusCell.innerText = "บอสเกิดแล้ว";
+                    statusCell.classList.remove("pending");
+                    statusCell.classList.add("completed");
                 } else {
+                    // ถ้ายังไม่ถึงเวลา ให้รอและเช็คสถานะใหม่ทุกๆ 1 วินาที
                     setTimeout(updateStatus, 1000);
                 }
             }
+
             updateStatus();
+        }
+
+        function removeRowAndLogHistory(row) {
+            // เก็บประวัติการลบ
+            let historyTable = document.getElementById("historyTable");
+            let historyRow = historyTable.insertRow();
+            let indexCell = historyRow.insertCell(0);
+            let nameCell = historyRow.insertCell(1);
+            let timeCell = historyRow.insertCell(2);
+            let dateCell = historyRow.insertCell(3);
+            let actionCell = historyRow.insertCell(4);
+
+            let name = row.cells[1].innerText;
+            let targetTime = row.cells[3].innerText;
+
+            indexCell.innerText = historyTable.rows.length;
+            nameCell.innerText = name;
+            timeCell.innerText = targetTime;
+            dateCell.innerText = new Date().toLocaleString();
+
+            // เพิ่มปุ่ม "ลบ" สำหรับประวัติการลบ
+            let deleteButton = document.createElement("button");
+            deleteButton.innerText = "ลบ";
+            deleteButton.onclick = function() {
+                historyTable.deleteRow(historyRow.rowIndex); // ลบแถวจากประวัติการลบ
+            };
+            actionCell.appendChild(deleteButton);
+
+            // ลบแถวจากตารางหลัก
+            row.remove();
         }
 
         setInterval(updateCurrentTime, 1000);
