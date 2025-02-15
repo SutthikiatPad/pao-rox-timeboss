@@ -155,6 +155,7 @@
             document.getElementById("currentTime").innerText = now.toLocaleTimeString("th-TH");
         }
 
+
         function addTimeToTable() {
             let name = document.getElementById("name").value.trim();
             let hours = parseInt(document.getElementById("hh").value) || 0;
@@ -209,6 +210,8 @@
             actionCell.appendChild(editBtn);
 
             checkStatus(row, targetTime);
+			//เพิ่ม code
+			sortTimeTable();
         }
 
         function checkStatus(row, targetTime) {
@@ -218,13 +221,13 @@
                 let now = new Date();
                 if (now >= targetTime) {
                     let countdown = 10;
-                    statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
+                    statusCell.innerText = `บอสเกิดแล้ว (ลบใน ${countdown} วินาที)`;
                     statusCell.classList.remove("pending");
                     statusCell.classList.add("waiting-remove");
 
                     let countdownInterval = setInterval(() => {
                         countdown--;
-                        statusCell.innerText = `ครบกำหนด (ลบใน ${countdown} วินาที)`;
+                        statusCell.innerText = `บอสเกิดแล้ว (ลบใน ${countdown} วินาที)`;
                         if (countdown <= 0) {
                             clearInterval(countdownInterval);
                             row.remove();
@@ -322,6 +325,25 @@
                 });
             }
         }
+		function sortTimeTable() {
+					let table = document.getElementById("timeTable");
+					let rows = Array.from(table.rows);
+
+					rows.sort((rowA, rowB) => {
+					let timeA = new Date("1970/01/01 " + rowA.cells[3].innerText);
+					let timeB = new Date("1970/01/01 " + rowB.cells[3].innerText);
+					return timeA - timeB; // เรียงจากน้อยไปมาก (ascending)
+				});
+
+					// ล้างข้อมูลเก่าก่อนเพิ่มแถวที่เรียงใหม่
+					table.innerHTML = "";
+    
+					// เพิ่มแถวใหม่และอัปเดต index
+					rows.forEach((row, index) => {
+					row.cells[0].innerText = index + 1; // อัปเดตเลขลำดับ #
+					table.appendChild(row);
+				});
+		}
 
     </script>
 
